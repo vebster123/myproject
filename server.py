@@ -1,21 +1,29 @@
 import socket
+import os
 
-HOST, PORT = '', 8888
+HOST = 'localhost'
+PORT = 8000
 
-listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-listen_socket.bind((HOST, PORT))
-listen_socket.listen(1)
+_socket = socket.socket()
+_socket.bind((HOST, PORT))
+_socket.listen(1)
 print 'Serving HTTP on port %s ...' % PORT
+
 while True:
-    client_connection, client_address = listen_socket.accept()
-    request = client_connection.recv(1024)
-    print request
+    client_connection = _socket.accept()
+    data = client_connection.recv(1024)
+    request = data.decode('utf-8').split(" ")
+    address = request[1][1:]
 
-    http_response = """\
-HTTP/1.1 200 OK
+    if address == "/about/aboutme.html":
+        file = open("/home/maxim/Desktop/web/"+address, mode = 'r')
+        response = """HTTP/1.1 200 OK \n Content type:text HTML\n\n\n """ + file.read()
+        client_connection.send(response)  
 
-Hello, World!
-"""
-    client_connection.sendall(http_response)
+    if address == "/index.html" or "/":
+        file = open("/home/maxim/Desktop/web/index.html", mode = 'r')
+        response = """http/1.1 200 OK \n Content type:text HTML\n\n\n """ + file.read()
+        client_connection.send(response)  
+
     client_connection.close()
+_socket.close()
